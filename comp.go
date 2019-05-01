@@ -28,5 +28,9 @@ func equals(a, b interface{}) bool {
 		return toNumber(a) == toNumber(b)
 	}
 
+	if isBool(a) {
+		return toBool(a) == toBool(b)
+	}
+
 	return toString(a) == toString(b)
 }
