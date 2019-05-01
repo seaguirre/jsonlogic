@@ -51,6 +51,15 @@ func isTrue(obj interface{}) bool {
 	return false
 }
 
+func toBool(value interface{}) bool {
+	if isString(value) {
+		w, _ := strconv.ParseBool(value.(string))
+		return w
+	}
+
+	return value.(bool)
+}
+
 func toNumber(value interface{}) float64 {
 	if isString(value) {
 		w, _ := strconv.ParseFloat(value.(string), 64)
