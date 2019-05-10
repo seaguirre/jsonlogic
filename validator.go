@@ -51,6 +51,8 @@ func validateJsonLogic(rules interface{}) bool {
 
 func isOperator(op string) bool {
 	operators := []string{
+		"<==>",
+		"<!=>",
 		"==",
 		"===",
 		"!=",

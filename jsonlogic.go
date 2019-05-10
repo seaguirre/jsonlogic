@@ -606,6 +606,14 @@ func operation(operator string, values, data interface{}) interface{} {
 		return !hardEquals(parsed[0], parsed[1])
 	}
 
+	if operator == "<==>" {
+		return safeEquals(parsed[0], parsed[1])
+	}
+
+	if operator == "<!=>" {
+		return !safeEquals(parsed[0], parsed[1])
+	}
+
 	return equals(parsed[0], parsed[1])
 }
 
