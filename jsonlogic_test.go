@@ -184,6 +184,494 @@ func TestSimpleVarComparison(t *testing.T) {
 	}
 }
 
+func TestSafeToBoolValid(t *testing.T) {
+	var a interface{}
+	a = true
+	pa, err := safeToBool(a)
+
+	if err != nil {
+		t.Fatal("Should not have thrown error, it's a valid bool value")
+	}
+	if pa == false {
+		t.Fatal("Should not have the default value")
+	}
+}
+
+func TestSafeToBoolString(t *testing.T) {
+	var a interface{}
+	a = "true"
+	pa, err := safeToBool(a)
+
+	if err != nil {
+		t.Fatal("Should not have thrown error, it's a valid bool value")
+	}
+	if pa == false {
+		t.Fatal("Should not have the default value")
+	}
+}
+
+func TestSafeToBoolEmpty(t *testing.T) {
+	var a interface{}
+	pa, err := safeToBool(a)
+
+	if err == nil {
+		t.Fatal("An error is expected because the variable is empty")
+	}
+	if pa != false {
+		t.Fatal("The expected result is the default value")
+	}
+}
+
+func TestSafeToBoolNil(t *testing.T) {
+	var a interface{}
+	a = nil
+	pa, err := safeToBool(a)
+
+	if err == nil {
+		t.Fatal("An error is expected because the variable is empty")
+	}
+	if pa != false {
+		t.Fatal("The expected result is the default value")
+	}
+}
+
+func TestSafeToNumberValid(t *testing.T) {
+	var a interface{}
+	a = float64(20)
+	pa, err := safeToNumber(a)
+
+	if err != nil {
+		t.Fatal("Should not have thrown error, it's a valid number value")
+	}
+	if pa == 0 {
+		t.Fatal("Should not have the default value")
+	}
+	if pa != 20 {
+		t.Fatal("The expected result does not match")
+	}
+}
+
+func TestSafeToNumberString(t *testing.T) {
+	var a interface{}
+	a = "20"
+	pa, err := safeToNumber(a)
+
+	if err != nil {
+		t.Fatal("Should not have thrown error, it's a valid number value")
+	}
+	if pa == 0 {
+		t.Fatal("Should not have the default value")
+	}
+	if pa != 20 {
+		t.Fatal("The expected result does not match")
+	}
+}
+
+func TestSafeToNumberEmpty(t *testing.T) {
+	var a interface{}
+	pa, err := safeToNumber(a)
+
+	if err == nil {
+		t.Fatal("An error is expected because the variable is empty")
+	}
+	if pa != 0 {
+		t.Fatal("The expected result is the default value")
+	}
+}
+
+func TestSafeToNumberNil(t *testing.T) {
+	var a interface{}
+	a = nil
+	pa, err := safeToNumber(a)
+
+	if err == nil {
+		t.Fatal("An error is expected because the variable is empty")
+	}
+	if pa != 0 {
+		t.Fatal("The expected result is the default value")
+	}
+}
+
+func TestSafeToStringValid(t *testing.T) {
+	var a interface{}
+	a = "some value"
+	pa, err := safeToString(a)
+
+	if err != nil {
+		t.Fatal("Should not have thrown error, it's a valid string value")
+	}
+	if pa == "" {
+		t.Fatal("Should not have the default value")
+	}
+	if pa != "some value" {
+		t.Fatal("The expected result does not match")
+	}
+}
+
+func TestSafeToStringEmpty(t *testing.T) {
+	var a interface{}
+	pa, err := safeToString(a)
+
+	if err == nil {
+		t.Fatal("An error is expected because the variable is empty")
+	}
+	if pa != "" {
+		t.Fatal("The expected result is the default value")
+	}
+}
+
+func TestSafeToStringNil(t *testing.T) {
+	var a interface{}
+	a = nil
+	pa, err := safeToString(a)
+
+	if err == nil {
+		t.Fatal("An error is expected because the variable is empty")
+	}
+	if pa != "" {
+		t.Fatal("The expected result is the default value")
+	}
+}
+
+func TestSimpleVarSafeEqualsWithEmptyValues(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<==>": [
+			{"var": "a"},
+			{"var": "b"}
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"c": "something"
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !result {
+		t.Fatal("The expected result must be true because the variables are equals (both nil)")
+	}
+}
+
+func TestSimpleVarSafeUnequalsWithEmptyValues(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<!=>": [
+			{"var": "a"},
+			{"var": "b"}
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"c": "something"
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result {
+		t.Fatal("The expected result must be false because the variables are equals (both nil)")
+	}
+}
+
+func TestSimpleVarSafeUnequalsWithDifferentValues(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<!=>": [
+			{"var": "a"},
+			{"var": "b"}
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"a": "something",
+		"b": "other"
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !result {
+		t.Fatal("The expected result must be true because the variables are different")
+	}
+}
+
+func TestSimpleVarSafeUnequalsWithNumberValue(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<!=>": [
+			{"var": "a"},
+			20
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": 30
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !result {
+		t.Fatal("The expected result must be true because the variables are different")
+	}
+}
+
+func TestSimpleVarSafeEqualsWithEmptyBoolValue(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<==>": [
+			{"var": "a"},
+			false
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": false
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result {
+		t.Fatal("The expected result must be false due to lack of data to execute the rule")
+	}
+}
+
+func TestSimpleVarSafeEqualsWithEmptyBoolValueInverted(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<==>": [
+			false,
+			{"var": "a"}
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": false
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result {
+		t.Fatal("The expected result must be false due to lack of data to execute the rule")
+	}
+}
+
+func TestSimpleVarSafeUnequalsWithEmptyBoolValue(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<!=>": [
+			{"var": "a"},
+			false
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": false
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !result {
+		t.Fatal("The expected result must be true because the variables are not equals")
+	}
+}
+
+func TestSimpleVarSafeEqualsWithEmptyNumberValue(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<==>": [
+			{"var": "a"},
+			0
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": 0
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result {
+		t.Fatal("The expected result must be false due to lack of data to execute the rule")
+	}
+}
+
+func TestSimpleVarSafeEqualsWithEmptyNumberValueInverted(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<==>": [
+			0,
+			{"var": "a"}
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": 0
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result {
+		t.Fatal("The expected result must be false due to lack of data to execute the rule")
+	}
+}
+
+func TestSimpleVarSafeUnequalsWithEmptyNumberValue(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<!=>": [
+			{"var": "a"},
+			0
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": 0
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !result {
+		t.Fatal("The expected result must be true because the variables are not equals")
+	}
+}
+
+func TestSimpleVarSafeEqualsWithEmptyStringValue(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<==>": [
+			{"var": "a"},
+			""
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": ""
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result {
+		t.Fatal("The expected result must be false due to lack of data to execute the rule")
+	}
+}
+
+func TestSimpleVarSafeEqualsWithEmptyStringValueInverted(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<==>": [
+			"",
+			{"var": "a"}
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": ""
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result {
+		t.Fatal("The expected result must be false due to lack of data to execute the rule")
+	}
+}
+
+func TestSimpleVarSafeUnequalsWithEmptyStringValue(t *testing.T) {
+	var rules interface{}
+	var data interface{}
+
+	json.Unmarshal([]byte(`{
+		"<!=>": [
+			{"var": "a"},
+			""
+		]
+	}`), &rules)
+
+	json.Unmarshal([]byte(`{
+		"b": ""
+	}`), &data)
+
+	var result bool
+	err := Apply(rules, data, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !result {
+		t.Fatal("The expected result must be true because the variables are not equals")
+	}
+}
+
 func TestComposedVar(t *testing.T) {
 	var rules interface{}
 	var data interface{}
